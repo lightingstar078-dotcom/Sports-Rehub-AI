@@ -19,13 +19,13 @@ export function Assessment({ onDone }: { onDone: (page: string) => void }) {
   const setCurrent = useAppStore(s => s.setCurrent);
   const [test, setTest] = useState('squat'); const [step, setStep] = useState(1); const [file, setFile] = useState<File | null>(null);
   const [pain, setPain] = useState(3); const [answers, setAnswers] = useState<number[]>(questions.map(() => 4));
-  const [state, setState] = useState<any>(null); const [result, setResult] = useState<any>(null); const [busy, setBusy] = useState(false); const [recording, setRecording] = useState(false);
+  const [state, setState] = useState<any>(null); const [result, setResult] = useState<any>(null); const [busy, setBusy] = useState(false); const [recording, setRecording] = useState(false); const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null); const canvasRef = useRef<HTMLCanvasElement>(null); const timerRef = useRef<number | undefined>(undefined);
   const streamRef = useRef<MediaStream | null>(null); const chunks = useRef<Blob[]>([]); const recorder = useRef<MediaRecorder | null>(null);
   // The reinjury-fear item is negative, therefore it is reverse scored.
   const psychologicalReadiness = Math.round((answers.reduce((sum, answer, index) => sum + (index === 3 ? 6 - answer : answer), 0) / (answers.length * 5)) * 100);
 
-  function stopCamera() { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = undefined; } streamRef.current?.getTracks().forEach(track => track.stop()); streamRef.current = null; }
+  function stopCamera() { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = undefined; } (streamRef.current || cameraStream)?.getTracks().forEach(track => track.stop()); streamRef.current = null; setCameraStream(null); }
   async function openCamera() {
     stopCamera();
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
@@ -34,23 +34,11 @@ export function Assessment({ onDone }: { onDone: (page: string) => void }) {
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false });
-      // Render the video element before assigning srcObject. Previously the
-      // ref was null here because the element only exists on step two.
-      setStep(2);
-      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-      streamRef.current = stream;
-      if (!videoRef.current) throw new Error('Camera preview could not be created.');
-      videoRef.current.srcObject = stream;
-      await videoRef.current.play();
-      setState(null);
-      timerRef.current = window.setInterval(async () => {
-        const video = videoRef.current, canvas = canvasRef.current; if (!video || !canvas || video.readyState < 2) return;
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d')?.drawImage(video, 0, 0);
-        canvas.toBlob(async blob => { if (!blob) return; const body = new FormData(); body.append('file', blob, 'frame.jpg'); try { setState(await api('/api/vision/detect-human', { method: 'POST', body }, mode)); } catch (error: any) { setState({ status: 'ERROR', message: error.message || 'Human validation is unavailable.' }); } }, 'image/jpeg', 0.75);
-      }, 1100);
+      // The effect below attaches this only after React has rendered <video>.
+      streamRef.current = stream; setCameraStream(stream); setState(null); setStep(2);
     } catch (error: any) {
       stopCamera();
-      const message = error?.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access in your browser settings, then try again.' : error?.name === 'NotFoundError' ? 'No camera was found on this device.' : 'Camera access was blocked or unavailable.';
+      const message = error?.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access in your browser settings, then try again.' : error?.name === 'NotFoundError' ? 'No camera was found on this device.' : `Camera could not start${error?.name ? ` (${error.name})` : ''}. ${error?.message || 'Check that no other app is using it.'}`;
       setState({ status: 'ERROR', message });
     }
   }
@@ -73,7 +61,32 @@ export function Assessment({ onDone }: { onDone: (page: string) => void }) {
     try { const assessment = await api<any>('/api/assessment', { method: 'POST', body }, mode); setCurrent(assessment); setResult(assessment); setStep(6); }
     catch (error: any) { setState({ status: 'ERROR', message: error.message || 'Assessment failed' }); setStep(5); } finally { setBusy(false); }
   }
-  useEffect(() => () => stopCamera(), []);
+  useEffect(() => {
+    if (step !== 2 || !cameraStream || !videoRef.current) return;
+    const video = videoRef.current;
+    let cancelled = false;
+    video.srcObject = cameraStream;
+    const startPreview = async () => {
+      try {
+        await video.play();
+        if (cancelled) return;
+        timerRef.current = window.setInterval(async () => {
+          const canvas = canvasRef.current; if (!canvas || video.readyState < 2) return;
+          canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+          canvas.getContext('2d')?.drawImage(video, 0, 0);
+          canvas.toBlob(async blob => {
+            if (!blob) return;
+            const body = new FormData(); body.append('file', blob, 'frame.jpg');
+            try { setState(await api('/api/vision/detect-human', { method: 'POST', body }, mode)); }
+            catch (error: any) { setState({ status: 'ERROR', message: error.message || 'Human validation is unavailable.' }); }
+          }, 'image/jpeg', 0.75);
+        }, 1100);
+      } catch (error: any) { setState({ status: 'ERROR', message: `Camera preview could not play. ${error?.message || ''}` }); }
+    };
+    void startPreview();
+    return () => { cancelled = true; if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = undefined; } if (video.srcObject === cameraStream) video.srcObject = null; };
+  }, [cameraStream, mode, step]);
+  useEffect(() => () => { streamRef.current?.getTracks().forEach(track => track.stop()); }, []);
   const stateText = step === 3 && file ? 'Video selected. Full-body validation runs before analysis.' : state?.message || 'Checking human and full-body visibility…';
 
   return <div className="assessment">
