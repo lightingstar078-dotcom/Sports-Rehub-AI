@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import argparse
 import pandas as pd
 import joblib
 from sklearn.model_selection import train_test_split
@@ -12,17 +13,21 @@ MODEL = ROOT / 'backend' / 'ml' / 'saved_model' / 'readiness_model.joblib'
 OUT = ROOT / 'dataset' / 'processed' / 'metrics.json'
 FEATURES = ['movement_quality','symmetry','rom','stability','landing_control','movement_consistency','pain','psychological_readiness','recovery_trend']
 
+parser = argparse.ArgumentParser(description='Evaluate the trained readiness model.')
+parser.add_argument('--real-only', action='store_true', help='Require real extracted video data and a real-data model.')
+args = parser.parse_args()
+
 if not MODEL.exists():
     raise SystemExit('Model missing. Run train_model.py first.')
 
 if CSV.exists():
     df = pd.read_csv(CSV).rename(columns={'pain_score': 'pain'})
     source = 'athlete_labeled_dataset'
-elif DEV_CSV.exists():
+elif DEV_CSV.exists() and not args.real_only:
     df = pd.read_csv(DEV_CSV)
     source = 'synthetic_development_dataset'
 else:
-    raise SystemExit('Dataset missing.')
+    raise SystemExit('No extracted real video dataset found. Add real videos and labels, then run extract_dataset.py.')
 
 if 'recovery_trend' not in df.columns:
     df['recovery_trend'] = 50.0
@@ -32,6 +37,8 @@ _, Xte, _, yte = train_test_split(X, y, test_size=0.25, random_state=42, stratif
 artifact = joblib.load(MODEL)
 m = artifact['model'] if isinstance(artifact, dict) else artifact
 metadata = artifact.get('metadata', {}) if isinstance(artifact, dict) else {}
+if args.real_only and metadata.get('demo', True):
+    raise SystemExit('The installed model was trained on synthetic development data. Train with train_model.py --real-only before real-only evaluation.')
 yp = m.predict(Xte)
 p, r, f, _ = precision_recall_fscore_support(yte, yp, average='weighted', zero_division=0)
 labels = sorted(y.unique())
