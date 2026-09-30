@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sports-rehab-ai-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python ../scripts/download_pose_model.py
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.9
+      - key: STORAGE_DIR
+        value: /opt/render/project/src/backend/storage
+      - key: MAX_UPLOAD_MB
+        value: 120

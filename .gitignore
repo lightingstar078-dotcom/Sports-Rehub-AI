@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+*.db
+.pytest_cache/
+pytest-cache-files-*/
+backend/storage/
+backend/models/*.task
+backend/ml/saved_model/*.joblib
+!backend/ml/saved_model/readiness_model.joblib
+storage/videos/*
+!storage/videos/.gitkeep

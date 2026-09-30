@@ -1,0 +1,5 @@
+video_id,exercise,pain_score,psychological_readiness,label
+squat_001,squat,2,82,GREEN
+squat_002,squat,6,55,YELLOW
+hop_001,single_leg_hop,8,42,RED
+balance_001,single_leg_balance,3,70,YELLOW

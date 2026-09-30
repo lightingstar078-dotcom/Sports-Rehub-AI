@@ -1,0 +1,2 @@
+import { Wifi, WifiOff, Cloud, CloudOff } from 'lucide-react';
+export function StatusPill({network}:{network:'ONLINE'|'OFFLINE'}){return <div className={`status-pill ${network==='ONLINE'?'online':'offline'}`}>{network==='ONLINE'?<Wifi size={15}/>:<WifiOff size={15}/>}<span>{network}</span><span className="dot"/> {network==='ONLINE'?<><Cloud size={14}/> Cloud Sync</>:<><CloudOff size={14}/> Local AI</>}</div>}

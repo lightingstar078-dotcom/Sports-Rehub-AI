@@ -1,0 +1,16 @@
+fastapi>=0.116,<1
+uvicorn[standard]>=0.35,<1
+python-multipart>=0.0.20,<1
+pydantic>=2.11,<3
+sqlalchemy>=2.0.43,<3
+numpy>=2.3,<3
+pandas>=2.3,<3
+# The committed development artifact was trained with 1.8.x. Keep runtime and
+# training versions aligned; update the artifact deliberately when upgrading.
+scikit-learn>=1.8,<1.9
+joblib>=1.5,<2
+opencv-python>=4.12,<6
+mediapipe==1.0.1
+boto3>=1.40,<2
+psycopg[binary]>=3.2,<4
+httpx>=0.28,<1

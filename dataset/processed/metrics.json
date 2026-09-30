@@ -1,0 +1,31 @@
+{
+  "accuracy": 1.0,
+  "precision_weighted": 1.0,
+  "recall_weighted": 1.0,
+  "f1_weighted": 1.0,
+  "labels": [
+    "GREEN",
+    "RED",
+    "YELLOW"
+  ],
+  "confusion_matrix": [
+    [
+      75,
+      0,
+      0
+    ],
+    [
+      0,
+      75,
+      0
+    ],
+    [
+      0,
+      0,
+      75
+    ]
+  ],
+  "data_source": "synthetic_development_dataset",
+  "demo_model": true,
+  "warning": "Synthetic development dataset; not evidence of clinical performance."
+}

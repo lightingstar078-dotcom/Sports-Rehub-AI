@@ -1,0 +1,1 @@
+export function MetricCard({label,value,unit='%',hint}:{label:string;value:number|string;unit?:string;hint?:string}){return <div className="metric-card"><div className="metric-label">{label}</div><div className="metric-value">{value}<span>{unit}</span></div>{hint&&<div className="metric-hint">{hint}</div>}</div>}
