@@ -3,6 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+BASE = Path(__file__).resolve().parent
+# Local .env values are loaded before dependent modules initialize. Existing
+# process variables (for Render) take precedence over this development file.
+load_dotenv(BASE / ".env")
 
 from database import init_db
 from routes.athletes import router as athletes_router
@@ -13,7 +19,6 @@ from routes.chat import router as chat_router
 from routes.sync import router as sync_router
 from services.system_service import system_status
 
-BASE = Path(__file__).resolve().parent
 (Path(os.getenv("STORAGE_DIR", BASE / "storage")) / "videos").mkdir(parents=True, exist_ok=True)
 (BASE / "ml" / "saved_model").mkdir(parents=True, exist_ok=True)
 (BASE / "models").mkdir(parents=True, exist_ok=True)

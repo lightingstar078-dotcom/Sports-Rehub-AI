@@ -14,3 +14,4 @@ mediapipe==1.0.1
 boto3>=1.40,<2
 psycopg[binary]>=3.2,<4
 httpx>=0.28,<1
+python-dotenv>=1.0,<2
