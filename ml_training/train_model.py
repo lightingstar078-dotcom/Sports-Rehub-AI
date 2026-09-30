@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import argparse
 import pandas as pd
 import joblib
 from sklearn.ensemble import RandomForestClassifier
@@ -17,20 +18,24 @@ FEATURES = [
     'movement_consistency','pain','psychological_readiness','recovery_trend'
 ]
 
+parser = argparse.ArgumentParser(description='Train the return-to-play readiness model.')
+parser.add_argument('--real-only', action='store_true', help='Require extracted real labelled video data; never use the synthetic development dataset.')
+args = parser.parse_args()
 
-def load_dataset():
+
+def load_dataset(real_only=False):
     # Prefer the user's real extracted dataset. Development data is an explicit
     # fallback used only to keep the software demonstrable before athlete data exists.
     if CSV.exists():
         df = pd.read_csv(CSV).rename(columns={'pain_score': 'pain'})
         source = 'athlete_labeled_dataset'
         demo = False
-    elif DEV_CSV.exists():
+    elif DEV_CSV.exists() and not real_only:
         df = pd.read_csv(DEV_CSV)
         source = 'synthetic_development_dataset'
         demo = True
     else:
-        raise SystemExit('No dataset found. Add controlled labeled videos and run extract_dataset.py, or run build_development_dataset.py for a non-clinical development model.')
+        raise SystemExit('No extracted real dataset found. Add controlled labelled videos, run extract_dataset.py, then re-run with --real-only.')
     if 'recovery_trend' not in df.columns:
         df['recovery_trend'] = 50.0
     missing = [c for c in FEATURES + ['label'] if c not in df.columns]
@@ -40,7 +45,7 @@ def load_dataset():
 
 
 def main():
-    df, source, demo = load_dataset()
+    df, source, demo = load_dataset(args.real_only)
     if df['label'].nunique() < 2:
         raise SystemExit('Need at least two label classes.')
     X = df[FEATURES].astype(float)
