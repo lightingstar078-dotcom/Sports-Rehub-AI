@@ -1,0 +1,97 @@
+{
+  "model_scope": "acl_history_research_only",
+  "target": "ACL history vs control group",
+  "data_source": "Calisti et al. 2025 Figshare CC BY 4.0 dataset",
+  "feature_window": "first 101 samples from knee initial contact, per joint channel; mean/std/range",
+  "validation": "5-fold StratifiedGroupKFold; participant IDs held out by fold",
+  "trial_count": 2199,
+  "participant_count": 43,
+  "class_trial_counts": {
+    "CONTROL": 1143,
+    "ACL_HISTORY": 1056
+  },
+  "class_participant_counts": {
+    "CONTROL": 22,
+    "ACL_HISTORY": 21
+  },
+  "feature_count": 132,
+  "folds": [
+    {
+      "fold": 1,
+      "train_participants": 35,
+      "test_participants": 8,
+      "train_trials": 1784,
+      "test_trials": 415
+    },
+    {
+      "fold": 2,
+      "train_participants": 35,
+      "test_participants": 8,
+      "train_trials": 1786,
+      "test_trials": 413
+    },
+    {
+      "fold": 3,
+      "train_participants": 35,
+      "test_participants": 8,
+      "train_trials": 1783,
+      "test_trials": 416
+    },
+    {
+      "fold": 4,
+      "train_participants": 33,
+      "test_participants": 10,
+      "train_trials": 1708,
+      "test_trials": 491
+    },
+    {
+      "fold": 5,
+      "train_participants": 34,
+      "test_participants": 9,
+      "train_trials": 1735,
+      "test_trials": 464
+    }
+  ],
+  "cross_validation_trial_metrics": {
+    "accuracy": 0.5552523874488404,
+    "balanced_accuracy": 0.5529694086534638,
+    "f1_macro": 0.5524177436057953,
+    "labels_order": [
+      "CONTROL",
+      "ACL_HISTORY"
+    ],
+    "confusion_matrix": [
+      [
+        698,
+        445
+      ],
+      [
+        533,
+        523
+      ]
+    ]
+  },
+  "cross_validation_participant_metrics": {
+    "accuracy": 0.5581395348837209,
+    "balanced_accuracy": 0.5573593073593074,
+    "f1_macro": 0.5571815718157181,
+    "labels_order": [
+      "CONTROL",
+      "ACL_HISTORY"
+    ],
+    "confusion_matrix": [
+      [
+        13,
+        9
+      ],
+      [
+        10,
+        11
+      ]
+    ],
+    "participant_count": 43,
+    "trials_per_participant_min": 33,
+    "trials_per_participant_max": 52
+  },
+  "limitation": "Research dataset classification only; not return-to-play readiness, re-injury risk, diagnosis, or clinical validation."
+}

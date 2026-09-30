@@ -41,7 +41,9 @@ app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=Fals
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "sports-rehab-ai", **system_status()}
+    # Keep the health probe cheap and dependable during a cold start. The full
+    # capability report may load the ML artifact and probe local executables.
+    return {"status": "ok", "service": "sports-rehab-ai"}
 
 @app.get("/api/system/status")
 def status():

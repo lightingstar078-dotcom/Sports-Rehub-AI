@@ -11,5 +11,8 @@ backend/storage/
 backend/models/*.task
 backend/ml/saved_model/*.joblib
 !backend/ml/saved_model/readiness_model.joblib
+dataset/external/acl_jump_landing/Kinematic_data.zip
+dataset/external/acl_jump_landing/source/
+dataset/external/acl_jump_landing/derived/acl_history_research_model.joblib
 storage/videos/*
 !storage/videos/.gitkeep

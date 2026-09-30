@@ -8,4 +8,4 @@ type State={
   network:'ONLINE'|'OFFLINE'; setNetwork:(v:'ONLINE'|'OFFLINE')=>void;
   current: Assessment|null; setCurrent:(a:Assessment|null)=>void;
 };
-export const useAppStore=create<State>((set)=>({athlete:null,setAthlete:(athlete)=>set({athlete}),network:navigator.onLine?'ONLINE':'OFFLINE',setNetwork:(network)=>set({network}),current:null,setCurrent:(current)=>set({current})}));
+export const useAppStore=create<State>((set)=>({athlete:null,setAthlete:(athlete)=>set({athlete}),network:'OFFLINE',setNetwork:(network)=>set({network}),current:null,setCurrent:(current)=>set({current})}));

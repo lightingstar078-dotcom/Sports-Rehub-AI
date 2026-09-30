@@ -1,5 +1,9 @@
 # Sports Rehab AI — Offline-First Return-to-Play Monitoring
 
+Created by **Jaisurya ([@Jaisurya2823](https://github.com/Jaisurya2823))**.
+Software is licensed under the [MIT License](LICENSE). Third-party datasets
+retain their own licenses and attribution; see their dataset documentation.
+
 A hackathon-ready full-stack prototype for **AI-powered Return-to-Play readiness screening and recovery monitoring**.
 
 ## Core promise
