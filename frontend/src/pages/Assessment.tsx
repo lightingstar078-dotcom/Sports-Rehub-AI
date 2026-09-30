@@ -28,15 +28,31 @@ export function Assessment({ onDone }: { onDone: (page: string) => void }) {
   function stopCamera() { if (timerRef.current) { window.clearInterval(timerRef.current); timerRef.current = undefined; } streamRef.current?.getTracks().forEach(track => track.stop()); streamRef.current = null; }
   async function openCamera() {
     stopCamera();
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setState({ status: 'ERROR', message: 'Camera access needs localhost or HTTPS. Open the app at http://localhost:5173, or use an HTTPS deployment.' });
+      setStep(2); return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 } }, audio: false });
-      streamRef.current = stream; if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); } setState(null); setStep(2);
+      // Render the video element before assigning srcObject. Previously the
+      // ref was null here because the element only exists on step two.
+      setStep(2);
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      streamRef.current = stream;
+      if (!videoRef.current) throw new Error('Camera preview could not be created.');
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      setState(null);
       timerRef.current = window.setInterval(async () => {
         const video = videoRef.current, canvas = canvasRef.current; if (!video || !canvas || video.readyState < 2) return;
         canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d')?.drawImage(video, 0, 0);
         canvas.toBlob(async blob => { if (!blob) return; const body = new FormData(); body.append('file', blob, 'frame.jpg'); try { setState(await api('/api/vision/detect-human', { method: 'POST', body }, mode)); } catch (error: any) { setState({ status: 'ERROR', message: error.message || 'Human validation is unavailable.' }); } }, 'image/jpeg', 0.75);
       }, 1100);
-    } catch { setState({ status: 'ERROR', message: 'Camera access was blocked or unavailable.' }); }
+    } catch (error: any) {
+      stopCamera();
+      const message = error?.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access in your browser settings, then try again.' : error?.name === 'NotFoundError' ? 'No camera was found on this device.' : 'Camera access was blocked or unavailable.';
+      setState({ status: 'ERROR', message });
+    }
   }
   function startRecording() {
     if (!streamRef.current) return;
