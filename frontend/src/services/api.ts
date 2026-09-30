@@ -1,4 +1,6 @@
-const localBase = import.meta.env.VITE_LOCAL_API_URL || 'http://127.0.0.1:8000';
+// In Vite development, use the same-origin proxy to avoid CORS issues. A
+// deployed app must use its configured HTTPS online API instead.
+const localBase = import.meta.env.VITE_LOCAL_API_URL || (import.meta.env.DEV ? '/api' : 'http://127.0.0.1:8000');
 const buildTimeOnlineBase = import.meta.env.VITE_API_URL || '';
 const ONLINE_API_KEY = 'sports-rehab-ai.online-api-url';
 
@@ -25,9 +27,15 @@ export function getBase(mode: 'ONLINE' | 'OFFLINE') {
 }
 
 export async function api<T>(path: string, init?: RequestInit, mode: 'ONLINE' | 'OFFLINE' = 'OFFLINE'): Promise<T> {
+  const base = getBase(mode);
   let response: Response;
-  try { response = await fetch(`${getBase(mode)}${path}`, init); }
-  catch { throw new Error('The selected API is unavailable. Start the local backend or configure the deployed API URL in Settings.'); }
+  try { response = await fetch(`${base}${path}`, init); }
+  catch {
+    const mixedContent = window.location.protocol === 'https:' && base.startsWith('http://');
+    throw new Error(mixedContent
+      ? `Cannot reach ${base}: an HTTPS site cannot call an insecure local API. Configure your HTTPS Render API in Settings.`
+      : `Cannot reach ${base}. Start the local backend, or configure the deployed API URL in Settings.`);
+  }
   if (!response.ok) {
     let message = await response.text();
     try { message = JSON.parse(message).detail || message; } catch { /* response was not JSON */ }

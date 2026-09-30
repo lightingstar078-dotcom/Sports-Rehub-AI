@@ -11,5 +11,11 @@ export default defineConfig({
       name: 'Sports Rehab AI', short_name: 'Sports Rehab AI', start_url: '/', display: 'standalone', theme_color: '#0b1f3a', background_color: '#f6f9fc', icons: []
     }
   })],
-  server: { port: 5173 },
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:8000', changeOrigin: true },
+    },
+  },
 });
