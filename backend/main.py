@@ -9,6 +9,12 @@ BASE = Path(__file__).resolve().parent
 # Local .env values are loaded before dependent modules initialize. Existing
 # process variables (for Render) take precedence over this development file.
 load_dotenv(BASE / ".env")
+# Paths in backend/.env are relative to this backend directory, regardless of
+# whether the app is launched from the repository root, backend/, or pytest.
+for variable in ("SQLITE_PATH", "POSE_MODEL_PATH", "ML_MODEL_PATH", "STORAGE_DIR"):
+    configured = os.getenv(variable)
+    if configured and not Path(configured).is_absolute():
+        os.environ[variable] = str(BASE / configured)
 
 from database import init_db
 from routes.athletes import router as athletes_router

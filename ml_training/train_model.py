@@ -53,7 +53,9 @@ def main():
             random_state=42,
             class_weight='balanced_subsample',
             min_samples_leaf=2,
-            n_jobs=-1,
+            # One worker keeps training/prediction reliable on Windows,
+            # restricted environments, and small deployment instances.
+            n_jobs=1,
         )),
     ])
     pipe.fit(Xtr, ytr)
